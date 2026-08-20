@@ -146,27 +146,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // FLAG 5: This State object owns its own mutable copy of the
-  // roster, separate from the original top-level `studentList`.
-  // Because it lives inside a State, we can call setState() after
-  // removing a student and Flutter will rebuild the ListView with
-  // the shorter list — no gaps, no leftover card.
   late List<Student> students;
-
   @override
   void initState() {
     super.initState();
     students = List<Student>.from(studentList);
   }
-
-  // FLAG 5: Removes a specific student from the Dart List using
-  // List.remove(), then setState() so the UI updates immediately.
   void _deleteStudent(Student student) {
     setState(() {
       students.remove(student);
     });
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -183,10 +173,6 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         child: Container(
           color: Colors.black.withOpacity(0.4),
-
-          // FLAG 5: reading from `students` (this State's mutable
-          // list) instead of the original `studentList`, so deletions
-          // are reflected immediately.
           child: students.isEmpty
               ? const EmptyStateWidget()
               : ListView.builder(
@@ -199,15 +185,6 @@ class _MyHomePageState extends State<MyHomePage> {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 20),
                 child: ProfileCard(
-                  // FLAG 7: A stable key tied to studentId — NOT the
-                  // list index. Without this, ListView.builder can
-                  // reuse a card's State object (isFavorited,
-                  // editCount) by *position* when the list shrinks
-                  // after a delete, silently attaching one student's
-                  // state to a different student's card. Keying by
-                  // studentId guarantees each card's independent
-                  // state always stays attached to the correct
-                  // student no matter how the list changes.
                   key: ValueKey(student.studentId),
                   profileImage: student.image,
                   fullName: student.name,
@@ -220,8 +197,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   studentId: student.studentId,
                   email: student.email,
                   favoriteSubject: student.favoriteSubject,
-                  // FLAG 5: each card gets a callback that deletes
-                  // *this* student from the parent's list.
                   onDelete: () => _deleteStudent(student),
                 ),
               );
@@ -274,10 +249,6 @@ class EmptyStateWidget extends StatelessWidget {
     );
   }
 }
-
-// FLAG 1: ProfileCard is now a StatefulWidget so the Favorite button
-// can visibly toggle its own state (icon + color) when pressed, in
-// addition to showing a SnackBar and printing to the console.
 class ProfileCard extends StatefulWidget {
   const ProfileCard({
     super.key,
@@ -308,10 +279,6 @@ class ProfileCard extends StatefulWidget {
   final String studentId;
   final String email;
   final String favoriteSubject;
-
-  // FLAG 5: Callback supplied by the parent (MyHomePage's State),
-  // invoked when the user confirms deletion. The card itself never
-  // touches the list directly — it just asks its parent to remove it.
   final VoidCallback? onDelete;
 
   @override
@@ -319,21 +286,8 @@ class ProfileCard extends StatefulWidget {
 }
 
 class _ProfileCardState extends State<ProfileCard> {
-  // FLAG 4: Each ProfileCard in the ListView.builder gets its own
-  // _ProfileCardState instance, so isFavorited lives independently
-  // per student. Favoriting one card's State object has zero effect
-  // on any other card's State object — no shared/global variable is
-  // involved, so each student keeps their own favorite status.
   bool isFavorited = false;
-
-  // FLAG 3: Counter that visibly updates on screen every time the
-  // Edit button is pressed, via setState.
   int editCount = 0;
-
-  // FLAG 1: onPressed handler for the Favorite button.
-  // Reacts visibly by (1) toggling local state so the icon/label
-  // updates, (2) printing a message to the console, and
-  // (3) showing a temporary SnackBar notification.
   void _handleFavoritePressed() {
     setState(() {
       isFavorited = !isFavorited;
@@ -353,15 +307,6 @@ class _ProfileCardState extends State<ProfileCard> {
       ),
     );
   }
-
-  // FLAG 1 & FLAG 3: onPressed handler for the Edit button.
-  // FLAG 3: setState here increments editCount, which is displayed
-  // on screen, so Flutter rebuilds this card and the new count
-  // appears immediately.
-  // FLAG 6: This is only an Edit *trigger* — it opens a temporary
-  // bottom sheet that previews the fields a future Edit Screen will
-  // let you change. No actual saving/editing logic is implemented
-  // yet; that's the next CTF.
   void _handleEditPressed() {
     setState(() {
       editCount++;
@@ -369,9 +314,6 @@ class _ProfileCardState extends State<ProfileCard> {
 
     final name = widget.fullName ?? 'this student';
     print('Edit button pressed for $name. editCount=$editCount');
-
-    // FLAG 6: showModalBottomSheet displays a temporary editing
-    // interface that slides up from the bottom of the screen.
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF2A2A2A),
@@ -384,7 +326,6 @@ class _ProfileCardState extends State<ProfileCard> {
             left: 24,
             right: 24,
             top: 24,
-            // Keeps content clear of the on-screen keyboard/nav bar.
             bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom + 24,
           ),
           child: Column(
@@ -434,11 +375,6 @@ class _ProfileCardState extends State<ProfileCard> {
     );
   }
 
-  // FLAG 5: onPressed handler for the Delete button. Shows a quick
-  // confirmation dialog, then calls widget.onDelete — the callback
-  // passed down from MyHomePage's State — which removes this student
-  // from the List and triggers setState() in the parent so the UI
-  // updates immediately.
   void _handleDeletePressed() {
     final name = widget.fullName ?? 'this student';
 
@@ -469,11 +405,6 @@ class _ProfileCardState extends State<ProfileCard> {
       },
     );
   }
-
-  // FLAG 2: onTap handler for the Student Card itself.
-  // This is intentionally separate from _handleFavoritePressed and
-  // _handleEditPressed above — tapping the card body reacts on its
-  // own, distinct from tapping either button.
   void _handleCardTapped() {
     final name = widget.fullName ?? 'this student';
     print('Student Card tapped for $name.');
@@ -493,10 +424,6 @@ class _ProfileCardState extends State<ProfileCard> {
     String displayHobby = widget.hobby ?? 'Not provided';
 
     return Card(
-      // FLAG 4: The card's own background color changes when this
-      // specific student is favorited (a warm amber tint), while all
-      // other cards stay their normal translucent white — because each
-      // ProfileCard/InkWell has its own independent isFavorited state.
       color: isFavorited
           ? Colors.amber.withOpacity(0.25)
           : Colors.white.withOpacity(0.15),
@@ -506,12 +433,6 @@ class _ProfileCardState extends State<ProfileCard> {
             ? const BorderSide(color: Colors.amberAccent, width: 2)
             : BorderSide.none,
       ),
-      // FLAG 2: InkWell makes the whole card tappable via onTap.
-      // clipBehavior keeps the ripple within the Card's rounded corners.
-      // Because ElevatedButton has its own gesture handling, tapping
-      // either button is consumed by the button first and does NOT
-      // also fire this card-level onTap — the two interactions stay
-      // separate, as required.
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: _handleCardTapped,
@@ -521,8 +442,6 @@ class _ProfileCardState extends State<ProfileCard> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // FLAG 4: Star badge overlaid on the avatar, only shown
-              // for this student when isFavorited is true.
               Align(
                 alignment: Alignment.center,
                 child: Stack(
@@ -554,10 +473,6 @@ class _ProfileCardState extends State<ProfileCard> {
               ),
 
               const SizedBox(height: 24),
-
-              // FLAG 4: "Favorite" label pill, shown only for this
-              // student's card when it has been favorited. Full name
-              // stays on its own line either way.
               if (isFavorited)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
@@ -692,11 +607,6 @@ class _ProfileCardState extends State<ProfileCard> {
               ),
 
               const SizedBox(height: 12),
-
-              // FLAG 3: This text visibly updates the instant setState()
-              // runs inside _handleEditPressed — Flutter rebuilds this
-              // widget and the new editCount value appears on screen
-              // immediately, no manual refresh needed.
               Text(
                 'Edited $editCount time${editCount == 1 ? '' : 's'}',
                 style: const TextStyle(
@@ -707,14 +617,6 @@ class _ProfileCardState extends State<ProfileCard> {
               ),
 
               const SizedBox(height: 8),
-
-              // FLAG 1: Two buttons, each wired to onPressed.
-              // - Favorite: toggles isFavorited via setState, which
-              //   updates its own icon/label (FLAG 3 example #1: changing
-              //   an icon), prints to console, and shows a SnackBar.
-              // - Edit: increments editCount via setState, which updates
-              //   the counter text above (FLAG 3 example #2: updating a
-              //   counter), prints to console, and shows a SnackBar.
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -748,11 +650,6 @@ class _ProfileCardState extends State<ProfileCard> {
               ),
 
               const SizedBox(height: 12),
-
-              // FLAG 5: Delete button, on its own row so it's visually
-              // separated from Favorite/Edit and harder to hit by
-              // accident. Confirms via dialog, then removes this
-              // student from the list through widget.onDelete.
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
