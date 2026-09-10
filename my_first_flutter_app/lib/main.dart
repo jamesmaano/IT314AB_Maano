@@ -18,13 +18,7 @@ class Student {
   final String email;
   final String favoriteSubject;
 
-  /*
 
-  STATUS LEGEND
-  Active   -> 0
-  Inactive -> 1
-
-  */
 
   final int status;
 
@@ -61,7 +55,7 @@ List<Student> studentList = (simulateEmptyList
     studentId: '2023-00145',
     email: 'james.maano@student.edu.ph',
     favoriteSubject: 'Sleeping all the time',
-    status: 0, // Active
+    status: 0,
   ),
   Student(
     image: 'assets/alright.jpg',
@@ -75,7 +69,7 @@ List<Student> studentList = (simulateEmptyList
     studentId: '2022-00089',
     email: 'juan.delacruz@student.edu.ph',
     favoriteSubject: 'Data Structures',
-    status: 1, // Inactive
+    status: 1,
   ),
   Student(
     image: 'assets/chopper.jpg',
@@ -89,7 +83,7 @@ List<Student> studentList = (simulateEmptyList
     studentId: '2024-00212',
     email: 'maria.santos@student.edu.ph',
     favoriteSubject: 'Web Development',
-    status: 0, // Active
+    status: 0,
   ),
   Student(
     image: 'assets/broke.jpg',
@@ -103,7 +97,7 @@ List<Student> studentList = (simulateEmptyList
     studentId: '2025-00301',
     email: 'angela.reyes@student.edu.ph',
     favoriteSubject: 'UI/UX Design',
-    status: 0, // Active
+    status: 0,
   ),
   Student(
     image: 'assets/zoro.jpg',
@@ -117,7 +111,7 @@ List<Student> studentList = (simulateEmptyList
     studentId: '2023-00177',
     email: 'mark.villanueva@student.edu.ph',
     favoriteSubject: 'Database Systems',
-    status: 1, // Inactive
+    status: 1,
   ),
   Student(
     image: 'assets/zoro.jpg',
@@ -131,7 +125,7 @@ List<Student> studentList = (simulateEmptyList
     studentId: '2024-00256',
     email: 'patricia.gomez@student.edu.ph',
     favoriteSubject: 'Software Engineering',
-    status: 0, // Active
+    status: 0,
   ),
 ])
   ..sort((a, b) {
@@ -154,9 +148,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// BAG-O: Flag 5 - Enum para klaro asa nga state ta karon.
-// Ang decision kung unsa nga UI ang ipakita kay base ra sa
-// duha ka butang: isLoading ug students.isEmpty.
 enum DirectoryState { loading, hasStudents, empty }
 
 class MyHomePage extends StatefulWidget {
@@ -169,7 +160,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   late List<Student> students;
 
-  // Flag 4: true una = naga-load pa, false = tapos na mag-load.
   bool isLoading = true;
 
   @override
@@ -177,9 +167,6 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     students = List<Student>.from(studentList);
 
-    // Mag-simulate ta ug 2 seconds nga pag-load (sama sa pag-fetch
-    // gikan sa internet o database). Human sa 2 seconds, i-usab nato
-    // ang isLoading ngadto sa false.
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
       setState(() {
@@ -188,9 +175,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  // BAG-O: Flag 5 - kani nga getter mao ang single source of truth.
-  // Naa ra guy tay usa ka state nga ma-return, so dili gyud mag-
-  // overlap ang loading/list/empty nga UI.
   DirectoryState get _currentState {
     if (isLoading) return DirectoryState.loading;
     if (students.isEmpty) return DirectoryState.empty;
@@ -203,15 +187,12 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  // Flag 3: i-restore ang tibuok list human ma-delete tanan.
   void _addStudent() {
     setState(() {
       students = List<Student>.from(studentList);
     });
   }
 
-  // BAG-O: Flag 5 (extra) - optional reload button para ma-demo
-  // pag-usab ang Loading state nga wala mag-restart sa app.
   void _reloadDirectory() {
     setState(() {
       isLoading = true;
@@ -224,9 +205,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  // BAG-O: Flag 5 - switch statement nga mo-return sa TAMA ra nga
-  // widget base sa _currentState. Kay switch ra ni (dili if-chain
-  // nga puwede ma-miss), sigurado nga usa ra ka branch ang ma-build.
   Widget _buildBody() {
     switch (_currentState) {
       case DirectoryState.loading:
@@ -273,8 +251,6 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Colors.teal,
         title: const Text('My First Flutter Application'),
         actions: [
-          // Optional: lets you demo the Loading state again without
-          // restarting the whole app. Remove if you don't want it.
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Reload',
@@ -291,8 +267,6 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         child: Container(
           color: Colors.black.withOpacity(0.4),
-          // BAG-O: Flag 5 - usa ra ka call, dayon ang _buildBody()
-          // na ang mo-decide unsa nga UI ang ipakita base sa state.
           child: _buildBody(),
         ),
       ),
@@ -300,7 +274,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-// Flag 4: Loading state widget. Simple lang: spinner + text sa tunga.
 class LoadingWidget extends StatelessWidget {
   const LoadingWidget({Key? key}) : super(key: key);
 
@@ -322,7 +295,6 @@ class LoadingWidget extends StatelessWidget {
   }
 }
 
-// Flag 3: Empty state widget.
 class EmptyStateWidget extends StatelessWidget {
   final VoidCallback onAddStudent;
 
@@ -356,8 +328,6 @@ class EmptyStateWidget extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            // Flag 3: Button to add a student.
-            // Mo-restore ra sa original list para naa gihapon student.
             ElevatedButton(
               onPressed: onAddStudent,
               style: ElevatedButton.styleFrom(
@@ -404,14 +374,6 @@ class ProfileCard extends StatefulWidget {
   final String studentId;
   final String email;
   final String favoriteSubject;
-
-  /*
-
-  STATUS LEGEND
-  Active   -> 0
-  Inactive -> 1
-
-  */
 
   final int status;
 
@@ -555,10 +517,8 @@ class _ProfileCardState extends State<ProfileCard> {
     String displayCourse = widget.courseSection ?? 'Unknown';
     String displayHobby = widget.hobby ?? 'Not provided';
 
-    // Flag 1: Active or Inactive
-    // Legend: 0 = Active, 1 = Inactive
-    String activeText = 'Inactive'; // default
-    Color activeColor = Colors.grey; // default
+    String activeText = 'Inactive';
+    Color activeColor = Colors.grey;
 
     if (widget.status == 0) {
       activeText = 'Active';
@@ -584,9 +544,6 @@ class _ProfileCardState extends State<ProfileCard> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Flag 3: small delete icon, permanente makita bisan
-              // Active o Inactive ang student. Kani ang paagi para
-              // ma-delete gihapon ang Inactive students diretso sa app.
               Align(
                 alignment: Alignment.topRight,
                 child: TextButton(
@@ -646,7 +603,6 @@ class _ProfileCardState extends State<ProfileCard> {
                   ),
                 ),
 
-              // Flag 1: Active or Inactive indicator.
               Text(
                 activeText,
                 style: TextStyle(
@@ -657,7 +613,6 @@ class _ProfileCardState extends State<ProfileCard> {
               ),
               const SizedBox(height: 8),
 
-              // Flag 2: Warning nga mogawas lang kung Inactive.
               if (widget.status != 0)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
@@ -813,9 +768,6 @@ class _ProfileCardState extends State<ProfileCard> {
                 ],
               ),
 
-              // Flag 2: Delete button nga mogawas lang kung Active.
-              // Kung Inactive (status != 0), wala gyuy ma-add sa widget
-              // list, so mawala ang delete button.
               if (widget.status == 0) ...[
                 const SizedBox(height: 12),
                 SizedBox(
