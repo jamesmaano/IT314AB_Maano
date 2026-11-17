@@ -37,6 +37,8 @@ dependencies:
 
   # ITO YUNG IDINAGDAG NATIN:
   shared_preferences: ^2.2.2
+  postgres: ^3.6.0
+  flutter_dotenv: ^6.0.2
 
 dev_dependencies:
   flutter_test:
@@ -68,6 +70,7 @@ flutter:
     - assets/chopper.jpg
     - assets/rebon.jpg
     - assets/zoro.jpg
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
